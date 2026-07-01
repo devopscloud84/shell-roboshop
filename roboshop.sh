@@ -39,12 +39,11 @@ do
     {
         "Changes":  [
             {
-                "Action": "UPSERT",
-                 "ResourceRecordSet": {
-                     "Name": "'R53_RECORD'",
-                     "Type": "A",
-                     "TTL": 1,
-                     "ResourceRecords": [
+                     "ResourceRecordSet": {
+                        "Name": "'$R53_RECORD'",
+                        "Type": "A",
+                        "TTL": 1,
+                        "ResourceRecords": [
                              {
                                 "Value": "'$IP'"
                              }
