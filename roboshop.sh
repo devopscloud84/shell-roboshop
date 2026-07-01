@@ -11,7 +11,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
     --image-id ami-0220d79f3f480ecf5 \
     --instance-type t3.micro \
     --security-groups "roboshop-common" "roboshop-$instance" \
-	--tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value="roboshop-$Instance"}]' \
+	--tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=roboshop-$Instance"}]" \
 	--query 'Instances[0].InstanceId' \
     --output text)
     
@@ -28,7 +28,6 @@ INSTANCE_ID=$(aws ec2 run-instances \
         --query 'Reservations [*].Instances[*].PrivateIpAddress' \
         --output text
         )        
-
         R53_RECORD="$instance.$DOMAIN_NAME"
      fi   
 
