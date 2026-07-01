@@ -1,11 +1,11 @@
 #!/bin/bash
+
 AMI_ID="ami-0220d79f3f480ecf5"
-ZON_ID="Z09497833FUO2XY5EW67D"
+ZONE_ID="Z09497833FUO2XY5EW67D"
 DOMAIN_NAME="daws8486.online"
 
 for instance in $@
 do
-
     echo "Launching instance: $Instance"
     INSTANCE_ID=$(aws ec2 run-instances \
         --image-id ami-0220d79f3f480ecf5 \
@@ -15,9 +15,7 @@ do
         --query 'Instances[0].InstanceId' \
         --output text
     )
-    
     echo "Instance ID: $INSTANCE_ID"
-
     if [ $instance == "frontend" ]; then
         IP= $(aws ec2 describe-instances --instance-ids  $INSTANCE_ID \
         --query 'Reservations[*].Instances[*].PublicIpAddress' \
@@ -31,10 +29,8 @@ do
         )        
         R53_RECORD="$instance.$DOMAIN_NAME"
      fi   
-
-
     aws route53 change-resource-record-sets \
-    --hosted-zone-id $ZON_ID \
+    --hosted-zone-id $ZONE_ID \
     --change-batch '
     {
         "Comment": "Update A record  to new IP",
