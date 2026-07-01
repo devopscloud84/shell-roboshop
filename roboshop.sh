@@ -36,20 +36,22 @@ INSTANCE_ID=$(aws ec2 run-instances \
     --hosted-zone-id $ZON_ID \
     --change-batch '
     {
-        "Changes":
-         [
+        "Changes":  [
             {
-            "Action": "UPSERT",
-            "ResourceRecordSet": {
-                "Name": "'R53_RECORD'",
-                "Type": "A",
-                "TTL": 1,
-                "ResourceRecords": [
-                    {
-                    "Value": "$IP"
-                    }
-                ]
+                "Action": "UPSERT",
+                 "ResourceRecordSet": {
+                     "Name": "'R53_RECORD'",
+                     "Type": "A",
+                     "TTL": 1,
+                     "ResourceRecords": [
+                             {
+                                "Value": "'$IP'"
+                             }
+                        ]
+                    }    
+                }
             ]
         }    
-    '  
+    '
+
 done
