@@ -21,7 +21,7 @@ do
     if [ $instance == "frontend" ]; then
         IP= $(aws ec2 describe-instances --instance-ids  $INSTANCE_ID \
         --query 'Reservations[*].Instances[*].PublicIpAddress' \
-        --output text
+        --output text 
         )
         R53_RECORD="$DOMAIN_NAME"
     else
@@ -37,6 +37,7 @@ do
     --hosted-zone-id $ZON_ID \
     --change-batch '
     {
+        "Comment": "Update A record  to new IP",
         "Changes":  [
             {
                      "ResourceRecordSet": {
