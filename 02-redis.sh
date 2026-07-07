@@ -28,8 +28,7 @@ VALIDATE(){
     else
         echo -e "$TIMESTAMP [SUCCESS] $2...$G SUCCESS $N" | tee -a $LOGS_FILE
     fi
- }
-
+}
 dnf module disable redis -y &>> $LOGS_FILE
 dnf module enable redis:7 -y &>> $LOGS_FILE
 dnf install redis -y &>> $LOGS_FILE
@@ -40,4 +39,4 @@ VALIDATE $? "Allowing remote connections"
 
 systemctl enable redis &>> $LOGS_FILE
 systemctl start redis &>> $LOGS_FILE
-VALIDATE $? "Started redis"
+VALIDATE $? "Started Redis"
