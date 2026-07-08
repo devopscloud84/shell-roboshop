@@ -16,7 +16,7 @@ Y="/e[33m"
 N="/e[0m"
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
 
-if [ $USERID -ne 0]; then
+if [ $USERID -ne 0 ]; then
 echo  -e "$TIMESTAMP [ERROR] $R please run this script with root access $N" | tee -a $LOGS_FILE
     exit 1
 fi
@@ -32,6 +32,10 @@ fi
 
  dnf install mysql-server -y &>> $LOGS_FILE
  VALIDATE $? "Installing mysql server"
+
  systemctl enable mysqld &>> $LOGS_FILE
  systemctl start mysqld  &>> $LOGS_FILE
+ VALIDATE $? "Enable and start mysql server"
+
  mysql_secure_installation --set-root-pass RoboShop@1
+ VALIDATE $? "Setting up root password"
