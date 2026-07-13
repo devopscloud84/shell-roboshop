@@ -31,7 +31,7 @@ aws ec2 describe-instances --filters "Name=tag:Name,Values=shell" "Name=instance
 for instance in $@
     do
     INSTANCE_ID=$(get_instance_id $instance)
-    if [ $ACTION == "create"]; then
+    if [ $ACTION == "create" ]; then
         if [ $INSTANCE_ID == "None" ]; then
             echo "Launching instance robosgop-$instance"
             INSTANCE_ID=(aws ec2 run-instances \
