@@ -16,75 +16,85 @@ if [ $# -lt 2 ]; then
 fi
 
 ACTION=$1
-shift #first argument will be removed#
+shift # first argument will be removed
 
-if [ "$ACTION" != "create" ] && [ "$Action" != "delete" ]; then
-    echo -e "$R ERROR:: First argument must be either create or delete $N" 
+if [ "$ACTION" != "create" ] && [ "$ACTION" != "delete" ]; then
+    echo -e "$R ERROR:: First argument must be either create or delete $N"
     echo "USAGE: $0 [create/delete] [instance1] [instance2...]"
     exit 1
-fi 
+fi
 
 get_instance_id(){
-name=$1
-aws ec2 describe-instances --filters "Name=tag:Name,Values=roboshop-$name" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text
-
+    name=$1
+    aws ec2 describe-instances --filters "Name=tag:Name,Values=roboshop-$name" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text
 }
 
 for instance in $@
-    do
+do
     INSTANCE_ID=$(get_instance_id $instance)
     if [ $ACTION == "create" ]; then
         if [ $INSTANCE_ID == "None" ]; then
-            echo "Launching instance robosgop-$instance"
-            INSTANCE_ID=$(aws ec2 run-instances \
+            echo "Launching Instance: roboshop-$instance"
+            INSTANCE_ID=$( aws ec2 run-instances \
             --image-id $AMI_ID \
             --instance-type t3.micro \
             --security-groups "roboshop-common" "roboshop-$instance" \
             --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=roboshop-$instance}]" \
             --query 'Instances[0].InstanceId' \
-            --output text)
-            echo "Launch Instance: $INSTANCE_ID"
-        
-            # update  R53 record
-            if [ $instance == "frontend" ]; then
-                IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID \
-                --query 'Reservations[*].Instances[*].PublicIpAddress' \
-                --output text
-                )
-                R53_RECORD="$DOMAIN_NAME"
-            else
-                IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID \
-                --query 'Reservations[*].Instances[*].PrivateIpAddress' \
-                --output text
-                )
-                R53_RECORD="$instance.$DOMAIN_NAME"
-            fi
-            #### Updating R53 Record ####
-            aws route53 change-resource-record-sets \
-            --hosted-zone-id $ZONE_ID \
-            --change-batch '
-                {
-                    "Comment": "Update A record to new IP",
-                    "Changes": [
-                        {
-                            "Action": "UPSERT",
-                            "ResourceRecordSet": {
-                                "Name": "'$R53_RECORD'",
-                                "Type": "A",
-                                "TTL": 1,
-                                "ResourceRecords": [
-                                    {
-                                        "Value": "'$IP'"
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            '
-            echo "updated R53 record for: $instance"
+            --output text 
+            )
+            echo "Launched Instance: $INSTANCE_ID"
+            aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+            echo "Instance is running: $INSTANCE_ID"
+
         else
-            echo "robosho-$insatance already running: $INSTANCE_ID"
+            echo "roboshop-$instance already running: $INSTANCE_ID"
         fi
-    fi        
+
+        # update R53 record
+        if [ $instance == "frontend" ]; then
+            IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text
+            )
+            R53_RECORD="$DOMAIN_NAME"
+        else
+            IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID \
+            --query 'Reservations[*].Instances[*].PrivateIpAddress' \
+            --output text
+            )
+            R53_RECORD="$instance.$DOMAIN_NAME"
+        fi
+
+        aws route53 change-resource-record-sets \
+        --hosted-zone-id $ZONE_ID \
+        --change-batch '
+            {
+                "Comment": "Update A record to new IP",
+                "Changes": [
+                    {
+                        "Action": "UPSERT",
+                        "ResourceRecordSet": {
+                            "Name": "'$R53_RECORD'",
+                            "Type": "A",
+                            "TTL": 1,
+                            "ResourceRecords": [
+                                {
+                                    "Value": "'$IP'"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        '
+        echo "updated R53 record for: $instance"
+    else
+        if [ $INSTANCE_ID == "None" ]; then
+            echo "$instance already destroyed, nothing to do..."
+        else
+            aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+            echo "Terminating Instance: $instance"
+        fi
+    fi
 done
