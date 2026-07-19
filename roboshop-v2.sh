@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+
 AMI_ID="ami-0220d79f3f480ecf5"
 ZONE_ID="Z02249102KA0AGQ9QRMTE" # replace with your zone ID
 DOMAIN_NAME="daws8486.online" # replace with your domain name
@@ -23,6 +25,7 @@ if [ "$ACTION" != "create" ] && [ "$ACTION" != "delete" ]; then
     echo "USAGE: $0 [create/delete] [instance1] [instance2...]"
     exit 1
 fi
+
 get_instance_id(){
     name=$1
     aws ec2 describe-instances --filters "Name=tag:Name,Values=roboshop-$name" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text
@@ -60,7 +63,8 @@ do
             )
             R53_RECORD="$instance.$DOMAIN_NAME"
         fi
-             aws route53 change-resource-record-sets \
+            
+            aws route53 change-resource-record-sets \
             --hosted-zone-id $ZONE_ID \
             --change-batch '
                 {
